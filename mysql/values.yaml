@@ -81,10 +81,10 @@ resources:
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
    limits:
-     cpu: 100m
-     memory: 256Mi
-   requests:
      cpu: 500m
+     memory: 1Gi
+   requests:
+     cpu: 250m
      memory: 512Mi
 
 # This is to setup the liveness and readiness probes more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-startup-probes/
@@ -100,7 +100,7 @@ readinessProbe:
     command:
       - "sh"
       - "-c"
-      - "mysqladmin ping -h 127.0.0.1 -u ${MYSQL_ROOT_USERNAME} -p ${MYSQL_ROOT_PASSWORD}"
+      - "mysqladmin ping -h 127.0.0.1 -u ${MYSQL_ROOT_USERNAME} -p${MYSQL_ROOT_PASSWORD}"
   initialDelaySeconds: 60
   periodSeconds: 30
   timeoutSeconds: 5
@@ -127,7 +127,11 @@ volumeMounts:
 
 secret:
   mysql:
-    password: ${MYSQL_ROOT_PASSWORD}
+    password: "${MYSQL_ROOT_PASSWORD}"
+
+configmap:
+  env:
+    MYSQL_INNODB_BUFFER_POOL_SIZE: 120M
 
 nodeSelector: {}
 
