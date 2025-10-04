@@ -30,7 +30,7 @@ autoscaling:
 # The below are the values for the init containers used in StatefulSet Deployment
 initContainer:
   xtrabackup:
-    name: xtrabackup
+    name: init-xtrabackup
     image:
       repository: percona/percona-xtrabackup
       pullPolicy: IfNotPresent
@@ -176,8 +176,8 @@ container:
       pullPolicy: IfNotPresent
       tag: "9"
     envFrom:
-      configMap:
-        name: mysql-conf
+      - configMapRef:
+          name: mysql-conf
     securityContext:
        capabilities:
          drop:
@@ -232,6 +232,9 @@ statefulSet:
     - name: config-map
       configMap:
         name: mysql-cluster
+    - name: data
+      persistentVolumeClaim:
+        claimName: mysql-cluster-pvclaim
 
 
 
@@ -273,7 +276,7 @@ affinity: {}
 secret:
   dockerConfig:
     name: docker-config-secret
-    dockerConfigJSON: kjagfkjgsfk # ${DOCKER_CONFIG_JSON} from env
+    dockerConfigJSON: ewogICJhdXRocyI6IHsKICAgICJodHRwczovL2luZGV4LmRvY2tlci5pby92MS8iOiB7CiAgICAgICJ1c2VybmFtZSI6ICJteXVzZXIiLAogICAgICAicGFzc3dvcmQiOiAibXlwYXNzd29yZCIsCiAgICAgICJlbWFpbCI6ICJteWVtYWlsQGV4YW1wbGUuY29tIiwKICAgICAgImF1dGgiOiAiYlhsMWMyVnlPbTE1Y0dGemMzZHZjbVE9IgogICAgfQogIH0KfQo= # ${DOCKER_CONFIG_JSON} from env
 
 
 # TODO:

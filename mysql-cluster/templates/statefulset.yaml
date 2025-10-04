@@ -21,8 +21,8 @@ spec:
         {{- toYaml . | nindent 8 }}
         {{- end }}
     spec:
-      imagePullSecrets:
-        - name: "{{- include "mysql-cluster.fullname" .}}-{{.Values.secret.dockerConfig.name}}"
+#      imagePullSecrets:
+#        - name: "{{- include "mysql-cluster.fullname" .}}-{{.Values.secret.dockerConfig.name}}"
       serviceAccountName: {{include "mysql-cluster.serviceAccountName" . | quote}}
       securityContext:
         {{- toYaml .Values.statefulSet.podSecurityContext | nindent 8 }}
@@ -54,6 +54,10 @@ spec:
             - name: mysql
               containerPort: {{ .Values.service.port }}
               protocol: TCP
+          {{- with .Values.container.mysql.envFrom }}
+          envFrom:
+            {{- toYaml . | nindent 12}}
+          {{- end }}
           livenessProbe:
             {{- toYaml .Values.container.mysql.livenessProbe | nindent 12 }}
           readinessProbe:
