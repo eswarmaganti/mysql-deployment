@@ -231,10 +231,7 @@ statefulSet:
       emptyDir: {}
     - name: config-map
       configMap:
-        name: mysql-cluster
-    - name: data
-      persistentVolumeClaim:
-        claimName: mysql-cluster-pvclaim
+        name: mysql-cluster-conf
 
 
 
