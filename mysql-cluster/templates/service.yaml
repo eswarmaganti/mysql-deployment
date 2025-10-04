@@ -5,11 +5,34 @@ metadata:
   labels:
     {{- include "mysql-cluster.labels" . | nindent 4 }}
 spec:
-  type: {{ .Values.service.type }}
+  clusterIP: None
+  type: {{.Values.service.type}}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: http
+      targetPort: {{ .Values.service.port }}
       protocol: TCP
-      name: http
+      name: mysql
   selector:
     {{- include "mysql-cluster.selectorLabels" . | nindent 4 }}
+
+---
+
+# Client service for connecting to any MYSQL instance for reads.
+# For writes, you must instead connect to the primary
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{include "mysql-cluster.fullname" .}}-read
+  labels:
+    {{- include "mysql-cluster.labels" . | nindent 4}}
+    readonly: "true"
+spec:
+  type: {{.Values.service.type}}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}
+      protocol: TCP
+      name: mysql
+  selector:
+    {{- include "mysql-cluster.selectorLabels" . | nindent 4}}

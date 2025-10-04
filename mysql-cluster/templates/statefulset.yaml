@@ -1,0 +1,98 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "mysql-cluster.fullname" . }}
+  labels:
+    {{- include "mysql-cluster.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.statefulSet.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "mysql-cluster.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      {{- with .Values.statefulSet.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "mysql-cluster.labels" . | nindent 8 }}
+        {{- with .Values.statefulSet.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+    spec:
+      imagePullSecrets:
+        - name: "{{- include "mysql-cluster.fullname" .}}-{{.Values.secret.dockerConfig.name}}"
+      serviceAccountName: {{include "mysql-cluster.serviceAccountName" . | quote}}
+      securityContext:
+        {{- toYaml .Values.statefulSet.podSecurityContext | nindent 8 }}
+      initContainers:
+        - name: {{ .Values.initContainer.mysql.name}}
+          image: "{{ .Values.initContainer.mysql.image.repository}}:{{ .Values.initContainer.mysql.image.tag | default "latest"}}"
+          imagePullPolicy: {{.Values.initContainer.mysql.image.pullPolicy}}
+          command:
+            {{- toYaml .Values.initContainer.mysql.command | nindent 12 }}
+          volumeMounts:
+            {{- toYaml .Values.initContainer.mysql.volumeMounts | nindent 12}}
+
+        - name: {{ .Values.initContainer.xtrabackup.name}}
+          image: "{{.Values.initContainer.xtrabackup.image.repository
+          }}:{{.Values.initContainer.xtrabackup.image.tag | default "latest" }}"
+          imagePullPolicy: {{.Values.initContainer.xtrabackup.image.pullPolicy}}
+          command:
+            {{- toYaml .Values.initContainer.xtrabackup.command | nindent 12}}
+          volumeMounts:
+            {{- toYaml .Values.initContainer.xtrabackup.volumeMounts | nindent 12}}
+
+      containers:
+        - name: {{ .Chart.Name }}
+          securityContext:
+            {{- toYaml .Values.container.mysql.securityContext | nindent 12 }}
+          image: "{{ .Values.container.mysql.image.repository }}:{{ .Values.container.mysql.image.tag | default "latest" }}"
+          imagePullPolicy: {{ .Values.container.mysql.image.pullPolicy }}
+          ports:
+            - name: mysql
+              containerPort: {{ .Values.service.port }}
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.container.mysql.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.container.mysql.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.container.mysql.resources | nindent 12 }}
+          {{- with .Values.container.mysql.volumeMounts }}
+          volumeMounts:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+
+        - name: {{.Values.container.xtrabackup.name}}
+          image: "{{.Values.container.xtrabackup.image.repository}}:{{.Values.container.xtrabackup.image.tag | default "latest"}}"
+          imagePullPolicy: {{.Values.container.xtrabackup.image.pullPolicy}}
+          ports:
+            - name: xtrabackup
+              containerPort: 3307
+          command:
+            {{- toYaml .Values.container.xtrabackup.command | nindent 12}}
+          resources:
+            {{- toYaml .Values.container.xtrabackup.resources | nindent 12}}
+          {{- with .Values.volumeMounts}}
+          volumeMounts:
+            {{- toYaml . | nindent 12}}
+          {{- end }}
+
+      {{- with .Values.statefulSet.volumes }}
+      volumes:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.statefulSet.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.statefulSet.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.statefulSet.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
