@@ -58,6 +58,7 @@ spec:
           envFrom:
             {{- toYaml . | nindent 12}}
           {{- end }}
+
           livenessProbe:
             {{- toYaml .Values.container.mysql.livenessProbe | nindent 12 }}
           readinessProbe:
@@ -67,21 +68,6 @@ spec:
           {{- with .Values.container.mysql.volumeMounts }}
           volumeMounts:
             {{- toYaml . | nindent 12 }}
-          {{- end }}
-
-        - name: {{.Values.container.xtrabackup.name}}
-          image: "{{.Values.container.xtrabackup.image.repository}}:{{.Values.container.xtrabackup.image.tag | default "latest"}}"
-          imagePullPolicy: {{.Values.container.xtrabackup.image.pullPolicy}}
-          ports:
-            - name: xtrabackup
-              containerPort: 3307
-          command:
-            {{- toYaml .Values.container.xtrabackup.command | nindent 12}}
-          resources:
-            {{- toYaml .Values.container.xtrabackup.resources | nindent 12}}
-          {{- with .Values.volumeMounts}}
-          volumeMounts:
-            {{- toYaml . | nindent 12}}
           {{- end }}
 
       {{- with .Values.statefulSet.volumes }}
@@ -104,8 +90,6 @@ spec:
   volumeClaimTemplates:
     - metadata:
         name: data
-        labels:
-          {{- include "mysql-cluster.labels" | nindent 4}}
       spec:
         storageClassName: standard
         accessModes:

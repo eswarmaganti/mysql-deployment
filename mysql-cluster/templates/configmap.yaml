@@ -22,4 +22,4 @@ metadata:
   labels:
     {{- include "mysql-cluster.labels" . | nindent 4}}
 data:
-  MYSQL_ALLOW_EMPTY_PASSWORD: "1"
+  MYSQL_INNODB_BUFFER_POOL_SIZE: "120M"

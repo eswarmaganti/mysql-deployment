@@ -1,3 +1,4 @@
 .idea
 .env
 mysql/values-dev.yaml
+mysql-cluster/values-dev.yaml
